@@ -1,0 +1,145 @@
+<html>
+    <script src="node_modules/web3/dist/web3.min.js"></script>
+    <script>
+        const web3 = new Web3("ws://localhost:8545")
+        const account = "0x32ec3167FD67662A17651f359700a33d2d63B6CF"
+        const contract_address = "0xbC8901331E75B06A45CB676607B1627279E1B377"
+        const private_key = "0x9c867239777eff95c55aac2927c739dfc0669c03262f647ded12f3fb303c861a"
+        const abi = 
+        [
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Eventt",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "surname",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "addUser",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "val",
+				"type": "uint256"
+			}
+		],
+		"name": "emitEvent",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getUser",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "count",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "surname",
+				"type": "string"
+			}
+		],
+		"name": "getUserAmount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
+    var contract = new web3.eth.Contract(abi, contract_address)
+    //call function
+    getUser()
+    async function getUser(){
+        let user_count = await contract.methods.getUser().call({from: account})
+        console.log(user_count)
+    }
+    getUserAmount("fabio", "apal")
+    async function getUserAmount(name, surname){
+        let amount = await contract.methods.getUserAmount(name, surname).call({from:account})
+        console.log(amount["amount"])
+    }
+
+    //send function
+    addUser("fabio","apal", 12)
+    async function addUser(name, surname, amount){
+        contract.methods.addUser(name, surname, amount).send({from: account, gas:3000000})
+    }
+    sendEventFunc(22)
+    async function sendEventFunc(val){
+        let event = await contract.methods.emitEvent(val).send({from: account, gas:3000000})
+    }
+
+    //getPastEvents show all last event that happened
+    let lastEvent = getLastEvent()
+    async function getLastEvent(){
+        let ev = await contract.getPastEvents("Eventt", { fromBlock: 0 })
+            .then((events) => console.log(events));
+    }
+
+    //subscribe to an event
+    //function .on(...) is executed every time Eventt is emited
+    contract.events.Eventt({ filter: { data2: [5, 9] } }).on("data", (event) => {
+       console.log(event.returnValues[0] + " - " + event.returnValues[1]);
+    });
+    
+    </script>
+</html>
